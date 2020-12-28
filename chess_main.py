@@ -27,6 +27,7 @@ def main():
 
     # get valid moves
     valid_moves = gs.valid_moves()
+    
     # flags when a valid move has been made, then generate a new set of valid_moves
     move_made = False 
 
