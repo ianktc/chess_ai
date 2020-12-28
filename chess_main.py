@@ -74,6 +74,10 @@ def main():
                     gs.undo_move(move)
                     move_made = True
 
+                    # reset clicks
+                    initial_selection = ()
+                    final_selection = []
+
         if(move_made):
             move_made = False
             valid_moves = gs.valid_moves()

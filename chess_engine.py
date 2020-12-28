@@ -8,11 +8,17 @@ class game_state():
             ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["--", "--", "--", "--", "--", "--", "--", "--"],
+            ["--", "--", "--", "wR", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"],
             ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]
         ]
+
+        self.get_moves = {
+            "P": self.get_pawn_moves, "R": self.get_rook_moves, 
+            "B": self.get_bishop_moves, "N": self.get_knight_moves,
+            "Q": self.get_queen_moves, "K": self.get_king_moves
+        }
         self.white_to_move = True
         self.move_log = []
     
@@ -20,22 +26,107 @@ class game_state():
     def make_move(self, move):
         self.board[move.start_row][move.start_col] = "--"
         self.board[move.end_row][move.end_col] = move.piece_moved    
+        # print(move.move_id)
         self.move_log.append(move)
         self.white_to_move = not self.white_to_move
     
     # undo last move made
     def undo_move(self, move):
         if(self.move_log != 0):
+            # print(move.move_id)
             self.board[move.start_row][move.start_col] = move.piece_moved
             self.board[move.end_row][move.end_col] = move.piece_captured   
             self.move_log.pop()
-            self.white_to_move = not self.white_to_move   
+            self.white_to_move = not self.white_to_move 
+            # print(self.move_log)
+          
 
     # helpers for getting moves for each piece 
     def get_pawn_moves(self, row, col, moves):
-        pass
+
+        # can move one or two squares forward on first move, captures diagonally
+
+        # white
+        if self.white_to_move:
+
+            if row > 0:
+                # move forwards one
+                if self.board[row - 1][col] == "--":
+                    moves.append(move((row, col), (row - 1,col), self.board))
+                # capture diagonally
+                if col > 0 and col < (len(self.board) - 1):
+                    if self.board[row - 1][col - 1][0] == "b":
+                        moves.append(move((row, col), (row - 1, col - 1), self.board))
+                    if self.board[row - 1][col + 1][0] == "b":
+                        moves.append(move((row, col), (row - 1, col + 1), self.board))
+
+        # black
+        elif not self.white_to_move:
+
+            if row < (len(self.board) - 1):
+                # move forwards one
+                if self.board[row + 1][col] == "--":
+                    moves.append(move((row, col), (row + 1, col), self.board))
+                # captures diagonally
+                if col > 0 and col < (len(self.board) - 1):
+                    if self.board[row + 1][col - 1][0] == "w":
+                        moves.append(move((row, col), (row + 1, col - 1), self.board))
+                    if self.board[row + 1][col + 1][0] == "w":
+                        moves.append(move((row, col), (row + 1, col + 1), self.board))
+
     def get_rook_moves(self, row, col, moves):
-        pass
+        
+        # can move in straight line along files and ranks
+        # white
+        if self.white_to_move:
+            
+            # horizontally
+            for square in range(len(self.board)):
+                
+                valid = True
+                
+                if square == col:
+                    continue
+                
+                if self.board[row][square][0] != "w":
+                    # verify that there are no pieces blocking path
+                    if square < col:
+                        for c in range(square + 1, col):
+                            if self.board[row][c] != "--":
+                                valid = False
+                    elif square > col:
+                        for c in range(col + 1, square):
+                            if self.board[row][c] != "--":
+                                valid = False
+                    if valid:
+                        moves.append(move((row, col), (row, square), self.board))
+            
+
+            # vertically
+            for square in range(len(self.board)):
+                
+                valid = True
+            
+                if square == row:
+                    continue
+
+                if self.board[square][col][0] != "w":
+                    # verify that there are no pieces blocking path
+                    if square < row:
+                        for r in range(square + 1, row):
+                            if self.board[r][col] != "--":
+                                valid = False
+                    elif square > row:
+                        for r in range(row + 1, square):
+                            if self.board[r][col] != "--":
+                                valid = False
+                    if valid:
+                        moves.append(move((row, col), (square, col), self.board))
+
+
+        # black
+        # if not self.white_to_move:
+
     def get_knight_moves(self, row, col, moves):
         pass
     def get_bishop_moves(self, row, col, moves):
@@ -51,7 +142,7 @@ class game_state():
 
     # get all valid moves
     def valid_moves(self):
-        moves = [move((6,4), (4,4), self.board)]
+        moves = []
 
         # parse through the board now to check for each piece and its possible moves
         for row in range(len(self.board)):
@@ -59,19 +150,7 @@ class game_state():
                 colour = self.board[row][col][0]
                 if (colour == "w" and self.white_to_move or colour == "b" and not self.white_to_move):
                     piece = self.board[row][col][1]
-                    
-                    if piece == "P":
-                        self.get_pawn_moves(row,col,moves)
-                    elif piece == "R":
-                        self.get_rook_moves(row,col,moves)
-                    elif piece == "N":
-                        self.get_knight_moves(row,col,moves)
-                    elif piece == "B":
-                        self.get_bishop_moves(row,col,moves)
-                    elif piece == "Q":
-                        self.get_queen_moves(row,col,moves)
-                    elif piece == "K":
-                        self.get_king_moves(row,col,moves)
+                    self.get_moves[piece](row, col, moves)
 
         return moves
 
