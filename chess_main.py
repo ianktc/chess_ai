@@ -41,14 +41,16 @@ def main():
 
     while running:
         for event in p.event.get():
+
             if event.type == p.QUIT:
                 running = False
+
             elif event.type == p.MOUSEBUTTONDOWN:
                 location = p.mouse.get_pos()
                 col = location[0] // SQ_SIZE
                 row = location[1] // SQ_SIZE
                 # if first click is same as most recent click then its a deselect
-                if(initial_selection == (row, col)):
+                if initial_selection == (row, col):
                     initial_selection = ()
                     final_selection = []
                 # otherwise add it to the list of clicks
@@ -61,16 +63,21 @@ def main():
 
                     print(move.get_chess_notation())
 
-                    if(move in valid_moves):
+                    if move in valid_moves:
                         move_made = True
                         print(move.move_id)
                         gs.make_move(move)
 
-                    # reset clicks
-                    initial_selection = ()
-                    final_selection = []
+                        # reset clicks
+                        initial_selection = ()
+                        final_selection = []
+                    
+                    elif move not in valid_moves:
+                        final_selection = [initial_selection]
 
+            # key presses
             elif event.type == p.KEYDOWN:
+                # undo
                 if event.key == p.K_z:
                     gs.undo_move(move)
                     move_made = True
@@ -78,6 +85,11 @@ def main():
                     # reset clicks
                     initial_selection = ()
                     final_selection = []
+                # pawn promotion
+                # if event.key == p.K_q:
+                # elif event.key == p.K_n:
+                # elif event.key == p.K_b:
+                # elif event.key == p.K_r:
 
         if(move_made):
             move_made = False
@@ -89,9 +101,7 @@ def main():
 
 # graphics for current game state
 def draw_game_state(screen, gs):
-    # draws the squares of board
     draw_squares(screen) 
-    # draw pieces
     draw_pieces(screen, gs.board)
 
 # helper for graphics (squares)
