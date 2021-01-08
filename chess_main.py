@@ -26,7 +26,7 @@ def main():
     gs = chess_engine.game_state()
 
     # get valid moves
-    valid_moves = gs.valid_moves()
+    valid_moves = gs.valid_moves_checked()
     
     # flags when a valid move has been made, then generate a new set of valid_moves
     move_made = False 
@@ -101,7 +101,7 @@ def main():
 
         if(move_made):
             move_made = False
-            valid_moves = gs.valid_moves()
+            valid_moves = gs.valid_moves_checked()
 
         draw_game_state(screen, gs)    
         clock.tick(MAX_FPS)
