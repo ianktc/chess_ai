@@ -38,7 +38,6 @@ class game_state():
     def make_move(self, move):
         self.board[move.start_row][move.start_col] = "--"
         self.board[move.end_row][move.end_col] = move.piece_moved    
-        # print(move.move_id)
         self.move_log.append(move)
         self.white_to_move = not self.white_to_move
 
@@ -50,12 +49,15 @@ class game_state():
     # undo last move made
     def undo_move(self, move):
         if(self.move_log != 0):
-            # print(move.move_id)
             self.board[move.start_row][move.start_col] = move.piece_moved
             self.board[move.end_row][move.end_col] = move.piece_captured   
             self.move_log.pop()
             self.white_to_move = not self.white_to_move 
-            # print(self.move_log)   
+
+            if move.piece_moved == "wK":
+                self.white_king_location = (move.end_row, move.end_col)
+            elif move.piece_moved == "bK":
+                self.black_king_location = (move.end_row, move.end_col)
 
     # helpers for getting moves for each piece 
     def get_pawn_moves(self, row, col, moves):
@@ -149,8 +151,9 @@ class game_state():
                     for c in range(col + 1, square):
                         if self.board[row][c] != "--":
                             valid = False
-                if valid and not piece_pinned or pin_direction == (0, 1) or pin_direction == (0,-1):
-                    moves.append(move((row, col), (row, square), self.board))
+                if valid:
+                    if not piece_pinned or pin_direction == (0, 1) or pin_direction == (0,-1):
+                        moves.append(move((row, col), (row, square), self.board))
         
 
         # vertically
@@ -171,8 +174,9 @@ class game_state():
                     for r in range(row + 1, square):
                         if self.board[r][col] != "--":
                             valid = False
-                if valid and not piece_pinned or pin_direction == (-1, 0) or pin_direction == (1,0):
-                    moves.append(move((row, col), (square, col), self.board))
+                if valid:
+                    if not piece_pinned or pin_direction == (-1, 0) or pin_direction == (1,0):
+                        moves.append(move((row, col), (square, col), self.board))
 
     def get_knight_moves(self, row, col, moves):
         
@@ -397,7 +401,7 @@ class game_state():
         in_check, pins, checks = self.check_pins_checks()
 
         if not in_check:
-            moves.append((row, col, end_row, end_col, self.board))
+            moves.append(move((row, col), (end_row, end_col), self.board))
         
         if colour == "w":
             self.white_king_location = (row, col)
@@ -456,6 +460,8 @@ class game_state():
         # else not in check
         else:
             moves = self.valid_moves()
+
+        return moves
     
     # get all valid moves
     def valid_moves(self):
@@ -473,6 +479,7 @@ class game_state():
 
     # checks for pins and checks
     def check_pins_checks(self):
+        
         pins = [] # refers to pinned allied pieces
         checks = [] # refers to enemy pieces putting king in check
         in_check = False
@@ -501,7 +508,7 @@ class game_state():
                 try:
                     end_piece = self.board[end_row][end_col]
 
-                    if end_piece[0] == ally:
+                    if end_piece[0] == ally and end_piece[1] != "K":
                         if possible_pin == ():
                             # save the location of the pin and the direction to the king
                             possible_pin = (end_row, end_col, d[0], d[1])
@@ -509,12 +516,12 @@ class game_state():
                             break
                     
                     elif end_piece[0] == enemy:
-                        type = end_piece[1]
+                        piece = end_piece[1]
                         # possible cases for an attacking piece
-                        if (0 <= j < 4 and type == "R") or \
-                            (4 <= j < 8 and type == "B") or \
-                            (i == 1 and type == "P" and ((enemy == "w" and 4 <= j <= 5) or (enemy == "b" and 6 <= j <=7))) or \
-                            (type == "Q") or (i == 1 and type == "K"):
+                        if (0 <= j < 4 and piece == "R") or \
+                            (4 <= j < 8 and piece == "B") or \
+                            (i == 1 and piece == "P" and ((enemy == "w" and 4 <= j <= 5) or (enemy == "b" and 6 <= j <=7))) or \
+                            (piece == "Q") or (i == 1 and piece == "K"):
                             if possible_pin == ():
                                 in_check == True
                                 checks.append(end_row, end_col, d[0], d[1])
