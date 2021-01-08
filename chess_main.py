@@ -40,28 +40,34 @@ def main():
     final_selection = []
 
     while running:
+
+        # event monitor
         for event in p.event.get():
 
             if event.type == p.QUIT:
                 running = False
 
+            # mouse presses
             elif event.type == p.MOUSEBUTTONDOWN:
                 location = p.mouse.get_pos()
                 col = location[0] // SQ_SIZE
                 row = location[1] // SQ_SIZE
+                
                 # if first click is same as most recent click then its a deselect
                 if initial_selection == (row, col):
                     initial_selection = ()
                     final_selection = []
+                
                 # otherwise add it to the list of clicks
                 else:
                     initial_selection = (row, col)
                     final_selection.append(initial_selection)
+                
                 # if most recent click diff than first click, its a move
                 if(len(final_selection) == 2):
                     move = chess_engine.move(final_selection[0], final_selection[1], gs.board)
 
-                    print(move.get_chess_notation())
+                    # print(move.get_chess_notation())
 
                     if move in valid_moves:
                         move_made = True
@@ -85,7 +91,9 @@ def main():
                     # reset clicks
                     initial_selection = ()
                     final_selection = []
+                
                 # pawn promotion
+                
                 # if event.key == p.K_q:
                 # elif event.key == p.K_n:
                 # elif event.key == p.K_b:
