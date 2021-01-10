@@ -65,20 +65,22 @@ def main():
                 
                 # if most recent click diff than first click, its a move
                 if(len(final_selection) == 2):
+                    
                     move = chess_engine.move(final_selection[0], final_selection[1], gs.board)
 
                     # print(move.get_chess_notation())
-
-                    if move in valid_moves:
-                        move_made = True
-                        print(move.move_id)
-                        gs.make_move(move)
-
-                        # reset clicks
-                        initial_selection = ()
-                        final_selection = []
                     
-                    elif move not in valid_moves:
+                    for i in range(len(valid_moves)):
+                        if move == valid_moves[i]:
+                            move_made = True
+                            # print(move.move_id)
+                            gs.make_move(valid_moves[i])
+
+                            # reset clicks
+                            initial_selection = ()
+                            final_selection = []
+                    
+                    if not move_made:
                         final_selection = [initial_selection]
 
             # key presses
