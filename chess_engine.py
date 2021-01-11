@@ -46,7 +46,6 @@ class game_state():
         self.board[move.start_row][move.start_col] = "--"
         self.board[move.end_row][move.end_col] = move.piece_moved    
         self.move_log.append(move)
-        self.white_to_move = not self.white_to_move
 
         if move.piece_moved == "wK":
             self.white_king_location = (move.end_row, move.end_col)
@@ -67,10 +66,28 @@ class game_state():
         else:
             self.possible_enpassant = ()
 
+        # if castle
+        if move.castle:
+            
+            # queen side
+            if move.start_col - move.end_col == 2:
+                # move rook then erase it from old spot
+                self.board[move.start_row][move.end_col + 1] = "wR" if self.white_to_move else "bR"
+                self.board[move.start_row][move.end_col - 2] = "--"
+
+            # king side
+            elif move.end_col - move.start_col == 2:
+                # move rook then erase it from old spot
+                self.board[move.start_row][move.end_col - 1] = "wR" if self.white_to_move else "bR"
+                self.board[move.start_row][move.end_col + 1] = "--"
+                
         # check castling rights, then append the new rights to the list in game state
         self.check_castling_rights(move)
         self.castle_rights_log.append(castling_rights(self.current_castling_rights.wks, self.current_castling_rights.wqs,
                                                   self.current_castling_rights.bks, self.current_castling_rights.bqs))
+        
+        # change turn
+        self.white_to_move = not self.white_to_move
 
     # undo last move made
     def undo_move(self, move):
@@ -364,33 +381,31 @@ class game_state():
             return
         
         ''' 
-        king side check
+        checking if blank squares are under attack
         '''
 
-        # now check for checks
-        if ally == "w":
-            if self.current_castling_rights.wks:
-                side = 0
-                self.castle_checker(row, col, moves, side, ally)
+        # king side check
+        side = 0
+        if self.current_castling_rights.wks and ally == "w":
+            if self.castle_checker(row, col, side, ally):
+                moves.append(move((row, col), (row, col + 2), self.board, possible_castle = True))
 
-        else:
-            if self.current_castling_rights.bks: 
-                side = 0
-                self.castle_checker(row, col, moves, side, ally)
+        if self.current_castling_rights.bks and ally == "b": 
+            if self.castle_checker(row, col, side, ally):
+                moves.append(move((row, col), (row, col + 2), self.board, possible_castle = True))
 
         # queen side check
-        if ally == "w":
-            if self.current_castling_rights.wqs:
-                side = 1
-                self.castle_checker(row, col, moves, side, ally)
+        side = 1
+        if self.current_castling_rights.wqs and ally == "w":
+            if self.castle_checker(row, col, side, ally):
+                moves.append(move((row, col), (row, col - 2), self.board, possible_castle = True))
 
-        else:
-            if self.current_castling_rights.bqs:
-                side = 1
-                self.castle_checker(row, col, moves, side, ally)
+        if self.current_castling_rights.bqs and ally == "b":
+            if self.castle_checker(row, col, side, ally):
+                moves.append(move((row, col), (row, col - 2), self.board, possible_castle = True))
 
     # helper to check validity of intermediary squares between rook and king
-    def castle_checker(self, row, col, moves, side, ally):
+    def castle_checker(self, row, col, side, ally):
 
         if ally == "w":
             enemy = "b"
@@ -406,18 +421,122 @@ class game_state():
         # first check for empty squares
         if side == 0:
             if self.board[king_row][king_col + 1] != "--" or self.board[king_row][king_col + 2] != "--":
-                return
+                return False
         elif side == 1:
             if self.board[king_row][king_col - 1] != "--" or self.board[king_row][king_col - 2] != "--" or self.board[king_row][king_col - 3] != "--":
-                return
+                return False
 
         # now check to ensure that there are no checks crossing onto blank squares
         for j in range(len(directions)):
             d = directions[j]
-            possible_pin = ()
+            continue_validation1 = True
+            continue_validation2 = True
+            continue_validation3 = True
+
             for i in range(1, 8):
-                end_row = king_row + d[0] * i
-                end_col = king_col + d[1] * i
+                
+                if side == 0:
+                    end_row = king_row + d[0] * i
+                    end_col1 = (king_col + 1) + d[1] * i
+                    end_col2 = (king_col + 2) + d[1] * i
+
+                    if 0 <= end_row < 8 and (0 <= end_col1 < 8 or 0 <= end_col2 < 8):
+                            
+                        if 0 <= end_col1 < 8 and continue_validation1:   
+                            end_piece1 = self.board[end_row][end_col1]
+                            # print("Enemy is " + enemy)
+
+                            # no longer need to continue looking for checking piece
+                            if end_piece1[0] == ally:
+                                continue_validation1 = False
+
+                            # is checking piece
+                            elif end_piece1[0] == enemy:
+                                piece = end_piece1[1]
+
+                                # possible cases for an attacking piece
+                                if (j == 1 and piece == "R") or \
+                                    ((j == 2 or j == 0) and piece == "B") or \
+                                    (i == 1 and piece == "P" and ((enemy == "w" and (j == 0 or j == 2)) or (enemy == "b" and (j == 0 or j == 2)))) or \
+                                    (piece == "Q") or (i == 1 and piece == "K"):
+                                    print("Been put in check: ")
+                                    return False
+
+                                print("Not in check")
+                        
+                        if 0 <= end_col2 < 8 and continue_validation2:
+                            end_piece2 = self.board[end_row][end_col2]
+                            # print("Enemy is " + enemy)
+                            
+                            # no longer need to continue looking for checking piece
+                            if end_piece2[0] == ally:
+                                continue_validation2 = False
+
+                            # is checking piece
+                            elif end_piece2[0] == enemy:
+                                piece = end_piece2[1]
+                            
+                                # possible cases for an attacking piece
+                                if (j == 1 and piece == "R") or \
+                                    ((j == 2 or j == 0) and piece == "B") or \
+                                    (i == 1 and piece == "P" and ((enemy == "w" and (j == 0 or j == 2)) or (enemy == "b" and (j == 0 or j == 2)))) or \
+                                    (piece == "Q") or (i == 1 and piece == "K"):
+                                    # print(self.current_castling_rights.wks)
+                                    print("Been put in check: ")
+                                    return False
+
+                                print("Not in check")
+                    
+                    else:
+                        break
+                
+                elif side == 1:
+                    end_row = king_row + d[0] * i
+                    end_col1 = (king_col - 1) + d[1] * i
+                    end_col2 = (king_col - 2) + d[1] * i
+
+                    if 0 <= end_row < 8 and (0 <= end_col1 < 8 or 0 <= end_col2 < 8):
+                            
+                        if 0 <= end_col1 < 8 and continue_validation1:   
+                            end_piece1 = self.board[end_row][end_col1]
+                            
+                            # no longer need to continue looking for checking piece
+                            if end_piece1[0] == ally:
+                                continue_validation1 = False
+
+                            # is checking piece
+                            elif end_piece1[0] == enemy:
+                                piece = end_piece1[1]
+                            
+                                # possible cases for an attacking piece
+                                if (j == 1 and piece == "R") or \
+                                    ((j == 2 or j == 0) and piece == "B") or \
+                                    (i == 1 and piece == "P" and ((enemy == "w" and (j == 0 or j == 2)) or (enemy == "b" and (j == 0 or j == 2)))) or \
+                                    (piece == "Q") or (i == 1 and piece == "K"):
+                                    return False
+
+                        if 0 <= end_col2 < 8 and continue_validation2:
+                            end_piece2 = self.board[end_row][end_col2]
+                            
+                            # no longer need to continue looking for checking piece
+                            if end_piece2[0] == ally:
+                                continue_validation2 = False
+
+                            # is checking piece
+                            elif end_piece2[0] == enemy:
+                                piece = end_piece2[1]
+                            
+                                # possible cases for an attacking piece
+                                if (j == 1 and piece == "R") or \
+                                    ((j == 2 or j == 0) and piece == "B") or \
+                                    (i == 1 and piece == "P" and ((enemy == "w" and (j == 0 or j == 2)) or (enemy == "b" and (j == 0 or j == 2)))) or \
+                                    (piece == "Q") or (i == 1 and piece == "K"):
+                                    return True
+                    
+                    else:
+                        break
+
+        return True
 
     # get all valid moves (when in check)
     def valid_moves_checked(self):
@@ -530,6 +649,7 @@ class game_state():
                 if 0 <= end_row < 8 and 0 <= end_col < 8:
                     end_piece = self.board[end_row][end_col]
 
+                    # possible pin
                     if end_piece[0] == ally and end_piece[1] != "K":
                         if possible_pin == ():
                             # save the location of the pin and the direction to the king
@@ -537,6 +657,7 @@ class game_state():
                         else:
                             break
                     
+                    # checking piece
                     elif end_piece[0] == enemy:
                         piece = end_piece[1]
                         # possible cases for an attacking piece
@@ -578,7 +699,7 @@ class move():
     cols_to_files = {v: k for k, v in files_to_cols.items()}
 
     # constructor
-    def __init__(self, start_pos, end_pos, board, possible_enpassant = False):
+    def __init__(self, start_pos, end_pos, board, possible_enpassant = False, possible_castle = False):
         
         # coordinates for start and end positions
         self.start_row = start_pos[0]
@@ -598,6 +719,9 @@ class move():
 
         if self.enpassant:
             self.piece_captured = "wP" if self.piece_moved == "bP" else "bP" 
+
+        # castling
+        self.castle = possible_castle
 
         # move id
         self.move_id = self.start_row * 1000 + self.start_col * 100 + self.end_row * 10 + self.end_col
@@ -627,4 +751,3 @@ class castling_rights():
         self.wqs = wqs
         self.bks = bks
         self.bqs = bqs
-
