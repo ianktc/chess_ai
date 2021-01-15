@@ -3,6 +3,8 @@
 import pygame as p 
 import chess_engine
 import ai
+import chess
+import chess.polyglot
 
 WIDTH = HEIGHT = 512
 DIMENSION = 8
@@ -42,7 +44,11 @@ def main():
 
     # detect if ai chosen (false for ai)
     player_one = True
-    player_two = True
+    player_two = False
+
+    board = chess.Board()
+    print(board)
+    print("--------------------------------------------------------------------------------")
 
     while running:
 
@@ -89,6 +95,9 @@ def main():
                                 # reset clicks
                                 initial_selection = ()
                                 final_selection = []
+
+                                move_played_string = valid_moves[i].get_chess_notation()
+                                board.push(chess.Move.from_uci(move_played_string))
                         
                         if not move_made:
                             final_selection = [initial_selection]
@@ -114,7 +123,7 @@ def main():
 
         # ai move 
         if not human_turn:
-            ai_move = ai.find_random_move(valid_moves)
+            ai_move = ai.find_random_move(valid_moves, gs, board)
             gs.make_move(ai_move)
             move_made = True
 

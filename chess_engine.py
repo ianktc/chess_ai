@@ -47,6 +47,9 @@ class game_state():
         self.board[move.end_row][move.end_col] = move.piece_moved    
         self.move_log.append(move)
 
+        # print(str(move.start_col) + str(move.start_row) + str(move.end_col) + str(move.end_row))
+        # print("Move made: " + move.get_chess_notation())
+
         if move.piece_moved == "wK":
             self.white_king_location = (move.end_row, move.end_col)
         elif move.piece_moved == "bK":
@@ -158,7 +161,7 @@ class game_state():
 
         # can move one or two squares forward on first move, captures diagonally
         
-        print(self.possible_enpassant)
+        # print(self.possible_enpassant)
 
         # white
         if self.white_to_move:
@@ -459,10 +462,10 @@ class game_state():
                                     ((j == 2 or j == 0) and piece == "B") or \
                                     (i == 1 and piece == "P" and ((enemy == "w" and (j == 0 or j == 2)) or (enemy == "b" and (j == 0 or j == 2)))) or \
                                     (piece == "Q") or (i == 1 and piece == "K"):
-                                    print("Been put in check: ")
+                                    # print("Been put in check: ")
                                     return False
 
-                                print("Not in check")
+                                # print("Not in check")
                         
                         if 0 <= end_col2 < 8 and continue_validation2:
                             end_piece2 = self.board[end_row][end_col2]
@@ -482,10 +485,10 @@ class game_state():
                                     (i == 1 and piece == "P" and ((enemy == "w" and (j == 0 or j == 2)) or (enemy == "b" and (j == 0 or j == 2)))) or \
                                     (piece == "Q") or (i == 1 and piece == "K"):
                                     # print(self.current_castling_rights.wks)
-                                    print("Been put in check: ")
+                                    # print("Been put in check: ")
                                     return False
 
-                                print("Not in check")
+                                # print("Not in check")
                     
                     else:
                         break
@@ -554,7 +557,7 @@ class game_state():
             king_row = self.black_king_location[0]
             king_col = self.black_king_location[1]
         
-        print("checking valid moves")
+        # print("checking valid moves")
         # print("Check status: " + str(self.in_check))
 
         # if in check
@@ -572,7 +575,7 @@ class game_state():
                 check_row = check[0]
                 check_col = check[1]
                 checking_piece = self.board[check_row][check_col]
-                print("in check from row: " + str(check_row) + " col: " + str(check_col))
+                # print("in check from row: " + str(check_row) + " col: " + str(check_col))
 
                 # if knight, must capture knight (cannot block)
                 if checking_piece[1] == "N":
@@ -728,7 +731,8 @@ class move():
  
     # not actually chess notation
     def get_chess_notation(self):
-        return self.get_rank_file(self.start_row, self.start_col) + self.get_rank_file(self.end_row, self.end_col)
+        return str(self.get_rank_file(self.start_row, self.start_col)) + str(self.get_rank_file(self.end_row, self.end_col))
+        # return self.get_rank_file(self.start_row, self.start_col) + self.get_rank_file(self.end_row, self.end_col)
 
     # get coordinates
     def get_rank_file(self, row, col):
