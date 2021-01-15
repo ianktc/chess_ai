@@ -663,7 +663,7 @@ class game_state():
                         # possible cases for an attacking piece
                         if (0 <= j <= 3 and piece == "R") or \
                             (4 <= j <= 7 and piece == "B") or \
-                            (i == 1 and piece == "P" and ((enemy == "w" and 4 <= j <= 5) or (enemy == "b" and 6 <= j <=7))) or \
+                            (i == 1 and piece == "P" and ((enemy == "b" and 4 <= j <= 5) or (enemy == "w" and 6 <= j <=7))) or \
                             (piece == "Q") or (i == 1 and piece == "K"):
                             if possible_pin == ():
                                 in_check = True

@@ -1,8 +1,6 @@
 BUGS:
 
-king can move into a check from the pawn (MAW)
 need to do castling for knight (check for checks)
-pawns are messed up when putting opposite king in check....
 
 TUT:
 
