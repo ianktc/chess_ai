@@ -175,30 +175,32 @@ class game_state():
                                 moves.append(move((row, col), (row - 2, col), self.board))
                 
                 # capture diagonally
-                if col > 0 and col < (len(self.board) - 1):
-
-                    # regular left capture
-                    if self.board[row - 1][col - 1][0] == "b":
-                        if not piece_pinned or pin_direction == (-1, -1):
-                            moves.append(move((row, col), (row - 1, col - 1), self.board))
+                if col >= 0 and col <= (len(self.board) - 1):
+                
+                    if col > 0:
+                        # regular left capture
+                        if self.board[row - 1][col - 1][0] == "b":
+                            if not piece_pinned or pin_direction == (-1, -1):
+                                moves.append(move((row, col), (row - 1, col - 1), self.board))
+                        
+                        # enpassant left capture
+                        if self.board[row - 1][col - 1] == "--":
+                            if not piece_pinned or pin_direction == (-1, -1):
+                                if self.possible_enpassant == (row - 1, col - 1):   
+                                    # print("enpassant possible!")
+                                    moves.append(move((row, col), (row - 1, col - 1), self.board, possible_enpassant = True))
                     
-                    # enpassant left capture
-                    if self.board[row - 1][col - 1] == "--":
-                        if not piece_pinned or pin_direction == (-1, -1):
-                            if self.possible_enpassant == (row - 1, col - 1):   
-                                # print("enpassant possible!")
-                                moves.append(move((row, col), (row - 1, col - 1), self.board, possible_enpassant = True))
-                    
-                    # regular right capture
-                    if self.board[row - 1][col + 1][0] == "b":
-                        if not piece_pinned or pin_direction == (-1, 1):
-                            moves.append(move((row, col), (row - 1, col + 1), self.board))
-                    
-                    # enpassant right capture
-                    if self.board[row - 1][col + 1] == "--":
-                        if not piece_pinned or pin_direction == (-1, 1):
-                            if self.possible_enpassant == (row - 1, col + 1):
-                                moves.append(move((row, col), (row - 1, col + 1), self.board, possible_enpassant = True))
+                    if col < 7:
+                        # regular right capture
+                        if self.board[row - 1][col + 1][0] == "b":
+                            if not piece_pinned or pin_direction == (-1, 1):
+                                moves.append(move((row, col), (row - 1, col + 1), self.board))
+                        
+                        # enpassant right capture
+                        if self.board[row - 1][col + 1] == "--":
+                            if not piece_pinned or pin_direction == (-1, 1):
+                                if self.possible_enpassant == (row - 1, col + 1):
+                                    moves.append(move((row, col), (row - 1, col + 1), self.board, possible_enpassant = True))
 
         # black
         elif not self.white_to_move:
@@ -212,29 +214,31 @@ class game_state():
                                 moves.append(move((row, col), (row + 2, col), self.board))
 
                 # captures diagonally
-                if col > 0 and col < (len(self.board) - 1):
+                if col >= 0 and col <= (len(self.board) - 1):
 
-                    # regular left capture  
-                    if self.board[row + 1][col - 1][0] == "w":
-                        if not piece_pinned or pin_direction == (1, -1):
-                            moves.append(move((row, col), (row + 1, col - 1), self.board))
+                    if col > 0:
+                        # regular left capture  
+                        if self.board[row + 1][col - 1][0] == "w":
+                            if not piece_pinned or pin_direction == (1, -1):
+                                moves.append(move((row, col), (row + 1, col - 1), self.board))
+                        
+                        # enpassant left capture
+                        if self.board[row + 1][col - 1] == "--":
+                            if not piece_pinned or pin_direction == (1, -1):
+                                if self.possible_enpassant == (row + 1, col - 1):
+                                    moves.append(move((row, col), (row + 1, col - 1), self.board, possible_enpassant = True))
                     
-                    # enpassant left capture
-                    if self.board[row + 1][col - 1] == "--":
-                        if not piece_pinned or pin_direction == (1, -1):
-                            if self.possible_enpassant == (row + 1, col - 1):
-                                moves.append(move((row, col), (row + 1, col - 1), self.board, possible_enpassant = True))
-                    
-                    # regular right capture
-                    if self.board[row + 1][col + 1][0] == "w":
-                        if not piece_pinned or pin_direction == (1, 1):
-                            moves.append(move((row, col), (row + 1, col + 1), self.board))
-                    
-                    # enpassant right capture
-                    if self.board[row + 1][col + 1] == "--":
-                        if not piece_pinned or pin_direction == (1, 1):
-                            if self.possible_enpassant == (row + 1, col + 1):
-                                moves.append(move((row, col), (row + 1, col + 1), self.board, possible_enpassant = True))
+                    if col < 7:
+                        # regular right capture
+                        if self.board[row + 1][col + 1][0] == "w":
+                            if not piece_pinned or pin_direction == (1, 1):
+                                moves.append(move((row, col), (row + 1, col + 1), self.board))
+                        
+                        # enpassant right capture
+                        if self.board[row + 1][col + 1] == "--":
+                            if not piece_pinned or pin_direction == (1, 1):
+                                if self.possible_enpassant == (row + 1, col + 1):
+                                    moves.append(move((row, col), (row + 1, col + 1), self.board, possible_enpassant = True))
 
     def get_rook_moves(self, row, col, moves):
         

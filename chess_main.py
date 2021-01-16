@@ -123,7 +123,7 @@ def main():
 
         # ai move 
         if not human_turn:
-            ai_move = ai.find_random_move(valid_moves, gs, board)
+            ai_move = ai.find_better_move(valid_moves, gs)
             gs.make_move(ai_move)
             move_made = True
 
